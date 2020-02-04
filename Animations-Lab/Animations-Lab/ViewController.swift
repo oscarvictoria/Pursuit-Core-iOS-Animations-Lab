@@ -18,23 +18,25 @@ class ViewController: UIViewController {
     
     lazy var stepperDistanceLabel: UILabel = {
         let label = UILabel()
-        label.text = "The value of the stepper is"
+        label.text = "The distance of the animation is 0.0"
         return label
     }()
     
     lazy var stepperDistance: UIStepper = {
         let stepper = UIStepper()
+        stepper.addTarget(self, action: #selector(changeStepperDistance(sender:)), for: .touchUpInside)
         return stepper
     }()
     
     lazy var stepperTimeLabel: UILabel = {
         let label = UILabel()
-        label.text = "The value of the stepper is"
+        label.text = "The duration of the animation is 0.0"
         return label
     }()
     
     lazy var stepperTime: UIStepper = {
         let stepper = UIStepper()
+        stepper.addTarget(self, action: #selector(changeStepperSpeed(sender:)), for: .touchUpInside)
         return stepper
     }()
     
@@ -123,36 +125,53 @@ class ViewController: UIViewController {
         pickerView.dataSource = self
     }
     
+    var distance: CGFloat = 0
+    
+    var duration: Double = 0
+    
     let animations = ["repeat", "autoreverse", "curvEaseInOut", "curveLinear", "curveEaseIn"]
+    
+    @IBAction func changeStepperDistance(sender: UIStepper) {
+        distance = CGFloat(sender.value)
+        stepperDistanceLabel.text = "The distance of the animation is \(distance.description)"
+    }
+    
+    @IBAction func changeStepperSpeed(sender: UIStepper) {
+        duration = sender.value
+        stepperTimeLabel.text = "The duration of the animation is \(duration.description)"
+        
+    }
     
     @IBAction func animateSquareRight(sender: UIButton) {
         let oldOffset = blueSquareCenterXConstraint.constant
-        blueSquareCenterXConstraint.constant = oldOffset + 150
-        UIView.animate(withDuration: 2) { [unowned self] in
+        blueSquareCenterXConstraint.constant = oldOffset + distance
+        UIView.animate(withDuration: duration) { [unowned self] in
             self.view.layoutIfNeeded()
         }
     }
     
     @IBAction func animateSquareLeft(sender: UIButton) {
         let oldOffset = blueSquareCenterXConstraint.constant
-        blueSquareCenterXConstraint.constant = oldOffset - 150
-        UIView.animate(withDuration: 2) { [unowned self] in
+        blueSquareCenterXConstraint.constant = oldOffset - distance
+        UIView.animate(withDuration: duration) { [unowned self] in
             self.view.layoutIfNeeded()
         }
     }
     
     @IBAction func animateSquareUp(sender: UIButton) {
         let oldOffset = blueSquareCenterYConstraint.constant
-        blueSquareCenterYConstraint.constant = oldOffset - 150
-        UIView.animate(withDuration: 2) { [unowned self] in
+        blueSquareCenterYConstraint.constant = oldOffset - distance
+        UIView.animate(withDuration: duration) { [unowned self] in
             self.view.layoutIfNeeded()
+            
         }
+       
     }
     
     @IBAction func animateSquareDown(sender: UIButton) {
         let oldOffet = blueSquareCenterYConstraint.constant
-        blueSquareCenterYConstraint.constant = oldOffet + 150
-        UIView.animate(withDuration: 2) { [unowned self] in
+        blueSquareCenterYConstraint.constant = oldOffet + distance
+        UIView.animate(withDuration: duration) { [unowned self] in
             self.view.layoutIfNeeded()
         }
     }
@@ -271,7 +290,7 @@ class ViewController: UIViewController {
         stepperDistanceLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             stepperDistanceLabel.topAnchor.constraint(equalTo: stepperTimeLabel.bottomAnchor, constant: 25),
-        stepperDistanceLabel.leadingAnchor.constraint(equalTo:stepperDistance.trailingAnchor, constant: 40)
+            stepperDistanceLabel.leadingAnchor.constraint(equalTo:stepperDistance.trailingAnchor, constant: 40)
         ])
     }
     
