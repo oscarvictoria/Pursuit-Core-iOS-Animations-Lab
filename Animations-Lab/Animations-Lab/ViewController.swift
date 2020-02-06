@@ -10,12 +10,9 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    lazy var pickerView: UIPickerView = {
-        let picker = UIPickerView()
-        picker.backgroundColor = .systemBackground
-        return picker
-    }()
     
+    var animation: UIView.AnimationOptions = UIView.AnimationOptions.autoreverse
+
     lazy var stepperDistanceLabel: UILabel = {
         let label = UILabel()
         label.text = "The distance of the animation is 0.0"
@@ -36,6 +33,7 @@ class ViewController: UIViewController {
     
     lazy var stepperTime: UIStepper = {
         let stepper = UIStepper()
+        stepper.value = 0
         stepper.addTarget(self, action: #selector(changeStepperSpeed(sender:)), for: .touchUpInside)
         return stepper
     }()
@@ -119,63 +117,88 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemBackground
         addSubviews()
         configureConstraints()
-        pickerView.delegate = self
-        pickerView.dataSource = self
+        configureNavBar()
+        
     }
+    
+    func configureNavBar() {
+        navigationItem.title = "Animations"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(showSettings(_:)))
+    }
+    
+    
+    @objc
+      private func showSettings(_ semder: UIBarButtonItem) {
+          // segue to the SettingsViewController
+          let settingsVC = SettingsViewController()
+          
+          //    present(settingsVC, animated: true)
+          navigationController?.pushViewController(settingsVC, animated: true)
+          
+      }
+    
     
     var distance: CGFloat = 0
     
     var duration: Double = 0
     
-    let animations = ["repeat", "autoreverse", "curvEaseInOut", "curveLinear", "curveEaseIn"]
+    
+    
+
     
     @IBAction func changeStepperDistance(sender: UIStepper) {
         distance = CGFloat(sender.value)
         stepperDistanceLabel.text = "The distance of the animation is \(distance.description)"
+        print(distance)
     }
     
     @IBAction func changeStepperSpeed(sender: UIStepper) {
         duration = sender.value
         stepperTimeLabel.text = "The duration of the animation is \(duration.description)"
+        print(duration)
+    }
+    
+    
+    
+    @IBAction func animateSquareRight(sender: UIButton) {
+        let oldOffset = self.blueSquareCenterXConstraint.constant
+        self.blueSquareCenterXConstraint.constant = oldOffset + self.distance
+        UIView.animate(withDuration: self.duration, delay: 0.0, options: [.repeat], animations: {
+            self.view.layoutIfNeeded()
+            }, completion: nil)
+        
         
     }
     
-    @IBAction func animateSquareRight(sender: UIButton) {
-        let oldOffset = blueSquareCenterXConstraint.constant
-        blueSquareCenterXConstraint.constant = oldOffset + distance
-        UIView.animate(withDuration: duration) { [unowned self] in
-            self.view.layoutIfNeeded()
-        }
-    }
-    
     @IBAction func animateSquareLeft(sender: UIButton) {
-        let oldOffset = blueSquareCenterXConstraint.constant
-        blueSquareCenterXConstraint.constant = oldOffset - distance
-        UIView.animate(withDuration: duration) { [unowned self] in
-            self.view.layoutIfNeeded()
-        }
+        let oldOffset = self.blueSquareCenterXConstraint.constant
+        self.blueSquareCenterXConstraint.constant = oldOffset - self.distance
+        UIView.animate(withDuration: self.duration, delay: 0.0, options: [.autoreverse], animations: {
+           self.view.layoutIfNeeded()
+        }, completion: nil)
+
     }
     
     @IBAction func animateSquareUp(sender: UIButton) {
-        let oldOffset = blueSquareCenterYConstraint.constant
-        blueSquareCenterYConstraint.constant = oldOffset - distance
-        UIView.animate(withDuration: duration) { [unowned self] in
-            self.view.layoutIfNeeded()
-            
-        }
-       
+        let oldOffset = self.blueSquareCenterYConstraint.constant
+        self.blueSquareCenterYConstraint.constant = oldOffset - self.distance
+        UIView.animate(withDuration: self.duration, delay: 0.0, options: [.transitionFlipFromLeft], animations: {
+         self.view.layoutIfNeeded()
+        }, completion: nil)
     }
     
     @IBAction func animateSquareDown(sender: UIButton) {
-        let oldOffet = blueSquareCenterYConstraint.constant
-        blueSquareCenterYConstraint.constant = oldOffet + distance
-        UIView.animate(withDuration: duration) { [unowned self] in
-            self.view.layoutIfNeeded()
-        }
+        let oldOffet = self.blueSquareCenterYConstraint.constant
+        self.blueSquareCenterYConstraint.constant = oldOffet + self.distance
+        UIView.animate(withDuration: self.duration, delay: 0.0, options: [.transitionCurlDown], animations: {
+        self.view.layoutIfNeeded()
+        }, completion: nil)
+        print(duration)
     }
-    
+
     private func addSubviews() {
         view.addSubview(blueSquare)
         addStackViewSubviews()
@@ -195,7 +218,6 @@ class ViewController: UIViewController {
         configureTimeLabel()
         configureDistanceStepper()
         configureDistanceLabel()
-        configurePickerView()
         constrainBlueSquare()
         constrainUpButton()
         constrainDownButton()
@@ -247,12 +269,13 @@ class ViewController: UIViewController {
     }
     
     private func constraintLeftButton() {
-        leftButton.translatesAutoresizingMaskIntoConstraints = false
+        rightButton.translatesAutoresizingMaskIntoConstraints = false
         rightButton.translatesAutoresizingMaskIntoConstraints = false
         rightButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
     }
     
     private func constraintRightButton() {
+        leftButton.translatesAutoresizingMaskIntoConstraints = false 
         leftButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
         leftButton.trailingAnchor.constraint(equalTo: buttonStackView.trailingAnchor).isActive = true
     }
@@ -294,33 +317,6 @@ class ViewController: UIViewController {
         ])
     }
     
-    private func configurePickerView() {
-        view.addSubview(pickerView)
-        pickerView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            pickerView.topAnchor.constraint(equalTo: stepperDistanceLabel.bottomAnchor, constant: 40),
-            pickerView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            pickerView.heightAnchor.constraint(equalToConstant: 150)
-        ])
-    }
-}
-
-extension ViewController: UIPickerViewDataSource {
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return animations.count
-    }
-    
-    
 }
 
 
-extension ViewController: UIPickerViewDelegate {
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        let animation = animations[row]
-        return animation
-    }
-}
